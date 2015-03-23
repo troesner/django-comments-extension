@@ -105,3 +105,14 @@ def comment_edit_form_target(comment):
         <form action="{% comment_edit_form_target comment %}" method="post">
     """
     return comments_extension.get_edit_form_target(comment)
+
+@register.simple_tag
+def comment_delete_form_target(comment):
+    """
+    Get the target URL for the delete form.
+
+    Example::
+
+        <form action="{% comment_delete_form_target comment %}" method="post">
+    """
+    return comments_extension.get_delete_form_target(comment)

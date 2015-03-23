@@ -24,7 +24,35 @@ class CommentEditBadRequest(HttpResponseBadRequest):
         if settings.DEBUG:
             self.content = render_to_string("comments/400-edit-debug.html", {"why": why})
 
+@csrf_protect
+@require_POST
+@user_passes_test(lambda u: u.has_perm("comments.delete_comment")
+                  or u.has_perm("comment.can_moderate"))
+def delete(request, comment_id, next=None):
+    """
+    Delete a comment.
+    
+    Requires HTTP POST and "can delete comments" or "can moderate comments",
+    permission. Users can also only delete comments they own, unless they are
+    granted "comments.can_moderate" permissions.
+    """
+    comment = get_object_or_404(
+        comments_extension.django_comments.get_model(), pk=comment_id, site__pk=settings.SITE_ID
+    )
+    # Make sure user has correct permissions to delete the comment,
+    # or return a 401 Unauthorized error.
+    if not (request.user == comment.user and request.user.has_perm("comments.delete_comment")
+            or request.user.has_perm("comments.can_moderate")):
+        return HttpResponse("Unauthorized", status=401)
+    
+    comment.delete()
 
+    next = request.POST.get("next", next)
+    return comments_extension.django_comments.views.utils.next_redirect(
+        request, fallback=next
+    )
+    
+    
 @csrf_protect
 @require_POST
 @user_passes_test(lambda u: u.has_perm("comments.change_comment")

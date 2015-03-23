@@ -45,3 +45,13 @@ def get_edit_form_target(comment):
         return django_comments.get_comment_app().get_edit_form_target()
     else:
         return urlresolvers.reverse("comments_extension.views.moderation.edit", args=(comment.id,))
+
+def get_delete_form_target(comment):
+    """
+    Returns the target URL for the comment remove form submission view.
+    """
+    if django_comments.get_comment_app_name() != django_comments.DEFAULT_COMMENTS_APP and \
+            hasattr(django_comments.get_comment_app(), "get_delete_form_target"):
+        return django_comments.get_comment_app().get_delete_form_target()
+    else:
+        return urlresolvers.reverse("comments_extension.views.moderation.delete", args=(comment.id,))
